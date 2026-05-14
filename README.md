@@ -6,6 +6,8 @@ Small React demo with an interactive hologram card effect.
 
 Live demo: https://joeltankard.github.io/hologram-card/
 
+Figma layers: https://www.figma.com/community/file/1636546633442665751
+
 ## Run locally
 
 ```sh
