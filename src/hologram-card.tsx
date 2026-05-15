@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEvent, MutableRefObject } from 'react';
+import type { CSSProperties, MouseEvent, MutableRefObject, ReactNode } from 'react';
 import { useEffect, useId, useRef } from 'react';
 
 type Point = { x: number; y: number };
@@ -6,7 +6,12 @@ export type HologramImages = { image: string; depth: string; shade: string };
 type HologramCardProps = {
   images: HologramImages;
   aspectRatio?: number;
+  width?: number;
   color?: string;
+  imagePosition?: string;
+  imageFit?: 'contain' | 'cover';
+  borderRadius?: number;
+  children?: ReactNode;
 };
 type LightRef = SVGFEPointLightElement | null;
 type CssVars = CSSProperties & Record<`--${string}`, string>;
@@ -54,7 +59,7 @@ const LIGHT = {
   },
 };
 
-export function HologramCard({ images, aspectRatio = DEFAULT_ASPECT_RATIO, color = '#00ccff' }: HologramCardProps) {
+export function HologramCard({ images, aspectRatio = DEFAULT_ASPECT_RATIO, width = CARD.width, color = '#00ccff', imagePosition = 'left center', imageFit = 'contain', borderRadius = CARD.radius, children }: HologramCardProps) {
   const id = useId().replace(/:/g, '');
   const cardRef = useRef<HTMLDivElement | null>(null);
   const tiltRef = useRef<HTMLDivElement | null>(null);
@@ -113,10 +118,12 @@ export function HologramCard({ images, aspectRatio = DEFAULT_ASPECT_RATIO, color
 
   return (
     <div ref={tiltRef} className="hologram-tilt" onMouseMove={handleMove} onMouseLeave={handleLeave}>
-      <div className="hologram-wrap" style={cardVars(aspectRatio)}>
-        <div ref={cardRef} className="hologram-card" style={{ backgroundColor: color }}>
+      <div className="hologram-wrap" style={cardVars(aspectRatio, width)}>
+        <div ref={cardRef} className="hologram-card" style={{ backgroundColor: color, borderRadius, ['--image-position' as string]: imagePosition, ['--image-fit' as string]: imageFit }}>
           <div className="hologram-dim" />
           <div className="hologram-gradient" />
+
+          {children && <div className="hologram-text">{children}</div>}
 
           <img className="hologram-layer shade" src={images.shade} alt="" />
           <img className="hologram-layer image" src={images.image} alt="Heart hologram" />
@@ -131,7 +138,7 @@ export function HologramCard({ images, aspectRatio = DEFAULT_ASPECT_RATIO, color
         </div>
 
         <svg className="hologram-border" preserveAspectRatio="none" aria-hidden>
-          <rect width="100%" height="100%" rx={CARD.radius} ry={CARD.radius} style={{ filter: `url(#border-${id})` }} />
+          <rect width="100%" height="100%" rx={borderRadius} ry={borderRadius} style={{ filter: `url(#border-${id})` }} />
         </svg>
       </div>
     </div>
@@ -220,9 +227,9 @@ function getCardCenter(aspectRatio: number): Point {
   return { x: CARD.width / 2, y: CARD.width / aspectRatio / 2 };
 }
 
-function cardVars(aspectRatio: number): CssVars {
+function cardVars(aspectRatio: number, width: number): CssVars {
   return {
-    '--card-width': `${CARD.width}px`,
+    '--card-width': `${width}px`,
     '--card-radius': `${CARD.radius}px`,
     '--card-shadow': CARD.shadow,
     '--tilt-perspective': `${TILT.perspective}px`,
